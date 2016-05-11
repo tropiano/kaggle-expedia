@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import random
 import ml_metrics as metrics
 import operator
@@ -34,35 +35,53 @@ def main():
 
     #open files
     print "opening files"
-    destinations = pd.read_csv("data/destinations.csv")
-    train = pd.read_csv("data/train.csv")
-    test= pd.read_csv("data/test.csv")
+    #destinations = pd.read_csv("data/destinations.csv")
+    train = pd.read_csv("../data/train.csv",
+                        usecols=['srch_destination_id', 'hotel_market','hotel_cluster','user_location_country', 'user_location_region', 'user_location_city',
+                                 'hotel_market', 'orig_destination_distance','date_time','user_id','is_booking'],
+                        dtype={'srch_destination_id':np.uint32, 'hotel_market':np.uint32, 'hotel_cluster':np.uint32, 'user_location_country':np.uint32, 
+                               'user_location_region':np.uint32, 'is_booking':np.bool})
+    
+    test= pd.read_csv("../data/test.csv",
+                      usecols=['srch_destination_id', 'hotel_market','user_location_country', 'user_location_region', 'user_location_city',
+                               'hotel_market', 'orig_destination_distance','date_time','user_id'],
+                      dtype={'srch_destination_id':np.uint32, 'hotel_market':np.uint32, 'user_location_country':np.uint32,
+                             'user_location_region':np.uint32})
+    
     print "files opened"
 
     train.date_time =pd.to_datetime(train.date_time)
     train["year"] = train.date_time.dt.year
     train["month"] = train.date_time.dt.month
 
+    #select 10000 userid
+    unique_user = train.user_id.unique()
+    print "unique users", len(unique_user)
 
-    unique_user = test.user_id.unique()
     sel_user_ids = [unique_user[i] for i in sorted(random.sample(range(len(unique_user)),50000))]
     sel_train = train[train.user_id.isin(sel_user_ids)]
 
-    t1 = sel_train[((sel_train.year == 2013) | ((sel_train.year == 2014) & (sel_train.month < 8)))]
-    t2 = sel_train[((sel_train.year == 2014) & (sel_train.month >= 8))]
-    t2 = t2[t2.is_booking==True]
+
+    t1 = train[((train.year == 2013) | ((train.year == 2014) & (sel_train.month < 8)))]
+    #t2 = sel_train[((sel_train.year == 2014) & (sel_train.month >= 8))]
+    #t2 = t2[t2.is_booking==True]
     
+    t1=train
+    t2=test
+
     print "shape of t1 (train)", t1.shape
     print "shape of t2 (test)", t2.shape
 
     most_common_cl = list(train.hotel_cluster.value_counts().head().index)
     
-    print "most common cluster prediction made"
+    print "most common cluster prediction made", most_common_cl
 
     
     #clusters by destination id and type
-    match_cols = ["srch_destination_id", "srch_destination_type_id", "is_package", "hotel_market"]
+    #match_cols = ["srch_destination_id", "srch_destination_type_id", "is_package", "hotel_market"]
+    match_cols = ["srch_destination_id", "hotel_market"]
     cluster_cols = match_cols + ['hotel_cluster']
+
     groups = t1.groupby(cluster_cols)
     top_clusters = {}
     for name, group in groups:
@@ -95,8 +114,7 @@ def main():
     
     print "basic prediction made"
 
-    match_cols = ['user_location_country', 'user_location_region', 'user_location_city', 
-                  'hotel_market', 'orig_destination_distance']
+    match_cols = ['user_location_city', 'orig_destination_distance']
     
     groups = t1.groupby(match_cols)
 
@@ -107,9 +125,15 @@ def main():
 
     print "exact matches prediction made"
 
-        
+    
+    basic_preds = [f5(most_common_cl)[:5] for p in range(len(preds))]
+    print "basic", metrics.mapk([[l] for l in t2["hotel_cluster"]], basic_preds, k=5)
+    
+    region_preds = [f5(preds[p] + most_common_cl)[:5] for p in range(len(preds))]
+    print "regional", metrics.mapk([[l] for l in t2["hotel_cluster"]], region_preds, k=5)    
+    
     full_preds = [f5(exact_matches[p] + preds[p] + most_common_cl)[:5] for p in range(len(preds))]
-    print metrics.mapk([[l] for l in t2["hotel_cluster"]], full_preds, k=5)
+    print "full", metrics.mapk([[l] for l in t2["hotel_cluster"]], full_preds, k=5)
 
 
     #uncomment to write the file
