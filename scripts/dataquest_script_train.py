@@ -33,6 +33,10 @@ def f5(seq, idfun=None):
 
 def main():
 
+    
+    n = sum(1 for line in open("../data/train.csv")) - 1 #number of records in file (excludes header)
+    s = 1000000 #desired sample size
+    skip = sorted(random.sample(xrange(1,n+1),n-s))
     #open files
     print "opening files"
     #destinations = pd.read_csv("data/destinations.csv")
@@ -40,7 +44,8 @@ def main():
                         usecols=['srch_destination_id', 'hotel_market','hotel_cluster','user_location_country', 'user_location_region', 'user_location_city',
                                  'hotel_market', 'orig_destination_distance','date_time','user_id','is_booking'],
                         dtype={'srch_destination_id':np.uint32, 'hotel_market':np.uint32, 'hotel_cluster':np.uint32, 'user_location_country':np.uint32, 
-                               'user_location_region':np.uint32, 'is_booking':np.bool})
+                               'user_location_region':np.uint32, 'is_booking':np.bool},skiprows=skip)
+    
     '''
     test= pd.read_csv("../data/test.csv",
                       usecols=['srch_destination_id', 'hotel_market','user_location_country', 'user_location_region', 'user_location_city',
@@ -58,10 +63,11 @@ def main():
     unique_user = train.user_id.unique()
     print "unique users", len(unique_user)
 
-    sel_user_ids = [unique_user[i] for i in sorted(random.sample(range(len(unique_user)),10000))]
+    sel_user_ids = [unique_user[i] for i in sorted(random.sample(range(len(unique_user)),450000))]
     sel_train = train[train.user_id.isin(sel_user_ids)]
 
     t1 = sel_train[((sel_train.year == 2013) | ((sel_train.year == 2014) & (sel_train.month < 8)))]
+    #t1 = sel_train[(sel_train.year == 2014) & (sel_train.month < 8)]                                                                              
     t2 = sel_train[((sel_train.year == 2014) & (sel_train.month >= 8))]
     t2 = t2[t2.is_booking==True]
     
@@ -78,7 +84,7 @@ def main():
     
     #clusters by destination id and type
     #match_cols = ["srch_destination_id", "srch_destination_type_id", "is_package", "hotel_market"]
-    match_cols = ["srch_destination_id", "hotel_market"]
+    match_cols = ["srch_destination_id"]
     cluster_cols = match_cols + ['hotel_cluster']
 
     groups = t1.groupby(cluster_cols)
@@ -117,8 +123,8 @@ def main():
     print "basic prediction made"
 
     
-    match_cols = ['user_location_country', 'user_location_region', 'user_location_city', 'hotel_market', 'orig_destination_distance']
-    #match_cols = ['user_location_city', 'orig_destination_distance']
+    #match_cols = ['user_location_country', 'user_location_region', 'user_location_city', 'hotel_market', 'orig_destination_distance']
+    match_cols = ['user_location_city', 'orig_destination_distance']
     
     groups = t1.groupby(match_cols)
     print "number of exact groups: ", len(groups)
