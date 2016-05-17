@@ -22,7 +22,8 @@ N1 = 1        # number of part
 
 def run_solution():
     print('Preparing arrays...')
-    f = open("../data/train.csv", "r")
+#   f = open("../data/train.csv", "r")
+    f = open("train_match_2016-05-17-15-47.csv","r")
     f.readline()
     best_hotels_od_ulc = defaultdict(lambda: defaultdict(int))
     best_hotels_search_dest = defaultdict(lambda: defaultdict(int))
@@ -61,8 +62,12 @@ def run_solution():
         
         if validate == 1 and user_id % N0 == N1:
             continue
-
+		
+        #print orig_destination_distance
         append_0 = (book_year - 2012)*12 + book_month
+        #try a weight based on destination distance 
+        #append_0 = float(orig_destination_distance)/24901 if orig_destination_distance != '' else 0
+        #print append_0
         append_1 = ((book_year - 2012)*12 + book_month) * (1 + 10*is_booking)
         append_2 = ((book_year - 2012)*12 + book_month) * (1 + 5*is_booking)
 		
@@ -78,8 +83,8 @@ def run_solution():
             best_hotels_search_dest[(srch_destination_id, hotel_country, hotel_market,is_package)][hotel_cluster] += append_1
 
 			
-        if srch_destination_id != '':
-            best_hotels_search_dest1[srch_destination_id][hotel_cluster] += append_1
+        if srch_destination_id != '' and orig_destination_distance != '':
+            best_hotels_search_dest1[srch_destination_id][hotel_cluster] += append_0
 
         if hotel_country != '':
             best_hotel_country[hotel_country][hotel_cluster] += append_2
@@ -102,7 +107,8 @@ def run_solution():
     ###########################
     if validate == 1:
         print('Validation...')
-        f = open("../data/train.csv", "r")
+        #f = open("../data/train.csv", "r")
+        f = open("train_match_2016-05-17-15-47.csv","r")
     else:
         print('Generate submission...')
         f = open("../data/test.csv", "r")
