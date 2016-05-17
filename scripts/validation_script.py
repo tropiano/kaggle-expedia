@@ -9,7 +9,7 @@
 
 
 
-import datetime
+from datetime import datetime
 from heapq import nlargest
 from operator import itemgetter
 from collections import defaultdict
@@ -22,13 +22,17 @@ N1 = 1        # number of part
 
 def run_solution():
     print('Preparing arrays...')
-    f = open("../data/train.csv", "r")
+    f = open("train_nomatch_2016-05-16-19-48.csv", "r")
     f.readline()
     best_hotels_od_ulc = defaultdict(lambda: defaultdict(int))
+    best_hotels_de_da = defaultdict(lambda: defaultdict(int))
+
     best_hotels_search_dest = defaultdict(lambda: defaultdict(int))
+    
     best_hotels_search_dest1 = defaultdict(lambda: defaultdict(int))
     best_hotel_country = defaultdict(lambda: defaultdict(int))
     best_hotel_month = defaultdict(lambda: defaultdict(int))
+    
     best_hotel_mo_id = defaultdict(lambda: defaultdict(int))
     best_hotel_pk_id = defaultdict(lambda: defaultdict(int))
     hits = defaultdict(int)
@@ -41,9 +45,9 @@ def run_solution():
     while 1:
         line = f.readline().strip()
         total += 1
-        if total % 10000000 == 0:
+{        if total % 100000 == 0:
             print('Read {} lines...'.format(total))
-        if line == '':
+        if line == '' or total==600000:
             break
         arr = line.split(",")
         book_year = int(arr[0][:4])
@@ -58,27 +62,36 @@ def run_solution():
         hotel_market = arr[22]
         hotel_cluster = arr[23]
 
+        #calculate number of days (11,12 in train, 12,13 in test)
+        ci = arr[11]
+        co = arr[12]
         
         if validate == 1 and user_id % N0 == N1:
             continue
 
-        append_0 = (book_year - 2012)*12 + book_month
-        append_1 = ((book_year - 2012)*12 + book_month) * (1 + 10*is_booking)
-        append_2 = ((book_year - 2012)*12 + book_month) * (1 + 5*is_booking)
+        #append_0 = (book_year - 2012)*12 + book_month
+        #append_1 = ((book_year - 2012)*12 + book_month) * (1 + 10*is_booking)
+        #append_2 = ((book_year - 2012)*12 + book_month) * (1 + 5*is_booking)
 		
-		#zeturbo parameters
-        #append_0 = 1
-        #append_1 = 3 + 17*is_booking
-        #append_2 = 1 + 5*is_booking
-		
+        #zeturbo parameters
+        append_0 = 1
+        append_1 = 3 + 17*is_booking
+        append_2 = 1 + 5*is_booking
+	
+	'''
         if user_location_city != '' and orig_destination_distance != '':
             best_hotels_od_ulc[(user_location_city, orig_destination_distance)][hotel_cluster] += append_0
+        '''
+
+        if srch_destination_id != '' and ci != '' and co != '':
+            days = (datetime.strptime(co, '%Y-%M-%d') - datetime.strptime(ci, '%Y-%M-%d')).days
+            best_hotels_de_da[(srch_destination_id,days)][hotel_cluster] += append_1
 
         if srch_destination_id != '' and hotel_country != '' and hotel_market != '':
             best_hotels_search_dest[(srch_destination_id, hotel_country, hotel_market,is_package)][hotel_cluster] += append_1
 
 			
-        if srch_destination_id != '':
+        if srch_destination_id != '' and orig_destination_distance != '':
             best_hotels_search_dest1[srch_destination_id][hotel_cluster] += append_1
 
         if hotel_country != '':
@@ -87,7 +100,7 @@ def run_solution():
 		#create the best hotel by month dictionary	
         if book_month != '':
             best_hotel_month[book_month][hotel_cluster] += append_2
-		
+            
 		#create the best hotel by month per destination dict	
         if book_month != '' and srch_destination_id != '':
             best_hotel_mo_id[(book_month,srch_destination_id)][hotel_cluster] += append_2
@@ -102,11 +115,11 @@ def run_solution():
     ###########################
     if validate == 1:
         print('Validation...')
-        f = open("../data/train.csv", "r")
+        f = open("train_nomatch_2016-05-16-19-48.csv", "r")
     else:
         print('Generate submission...')
         f = open("../data/test.csv", "r")
-    now = datetime.datetime.now()
+    now = datetime.now()
     path = 'submission_' + str(now.strftime("%Y-%m-%d-%H-%M")) + '.csv'
     out = open(path, "w")
     f.readline()
@@ -137,6 +150,8 @@ def run_solution():
             hotel_country = arr[21]
             hotel_market = arr[22]
             hotel_cluster = arr[23]
+            ci = arr[11]
+            co = arr[12]
             id = 0
             if user_id % N0 != N1:
                continue
@@ -172,6 +187,7 @@ def run_solution():
                    if topitems[i][0]==hotel_cluster:
                       hits[len(filled)] +=1
 
+              
         s2 = (srch_destination_id, hotel_country, hotel_market,is_package)
         if s2 in best_hotels_search_dest:
             d = best_hotels_search_dest[s2]
@@ -187,7 +203,7 @@ def run_solution():
                    if topitems[i][0]==hotel_cluster:
                       hits[len(filled)] +=1
         
-		s3 = (book_month, srch_destination_id)
+        s3 = (book_month, srch_destination_id)
         if s3 in best_hotel_mo_id:
             d = best_hotel_mo_id[s3]
             topitems = nlargest(5, d.items(), key=itemgetter(1))
@@ -202,6 +218,22 @@ def run_solution():
                    if topitems[i][0]==hotel_cluster:
                       hits[len(filled)] +=1			  
 
+        #best hotels by day and search destination                                                                                                                                                                                            
+        s11 = (srch_destination_id, days)
+        if s11 in best_hotels_de_da:
+            d = best_hotels_de_da[s11]
+            topitems = nlargest(5, d.items(), key=itemgetter(1))
+            for i in range(len(topitems)):
+                if len(filled) == 5:
+                    break
+                if topitems[i][0] in filled:
+                    continue
+                out.write(' ' + topitems[i][0])
+                filled.append(topitems[i][0])
+                if validate == 1:
+                   if topitems[i][0]==hotel_cluster:
+                      hits[len(filled)] +=1        
+              
         s4 = (is_package, srch_destination_id)
         if s4 in best_hotel_pk_id:
             d = best_hotel_pk_id[s4]
@@ -230,7 +262,7 @@ def run_solution():
                 if validate == 1:
                    if topitems[i][0]==hotel_cluster:
                       hits[len(filled)] +=1
-		'''
+            
         if book_month in best_hotel_month:
             d = best_hotel_month[book_month]
             topitems = nlargest(5, d.items(), key=itemgetter(1))
@@ -244,7 +276,7 @@ def run_solution():
                 if validate == 1:
                    if topitems[i][0]==hotel_cluster:
                       hits[len(filled)] +=1
-		'''			  
+					  
         if hotel_country in best_hotel_country:
             d = best_hotel_country[hotel_country]
             topitems = nlargest(5, d.items(), key=itemgetter(1))
@@ -269,8 +301,8 @@ def run_solution():
             if validate == 1:
                 if topclasters[i][0]==hotel_cluster:
                     hits[len(filled)] +=1
-
-
+        
+                    
         out.write("\n")
     out.close()
     print('Completed!')
