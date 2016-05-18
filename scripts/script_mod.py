@@ -30,7 +30,7 @@ def run_solution():
         if total % 10000000 == 0:
             print('Read {} lines...'.format(total))
 
-        if line == '' or total == 1000000:
+        if line == '':
             break
 
         arr = line.split(",")

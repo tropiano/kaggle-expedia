@@ -24,7 +24,7 @@ def run_solution():
     print('Preparing arrays...')
 
 #   f = open("../data/train.csv", "r")
-    f = open("train_match_2016-05-17-15-47.csv","r")
+    f = open("train_nomatch_2016-05-17-15-47.csv","r")
     f.readline()
     best_hotels_od_ulc = defaultdict(lambda: defaultdict(int))
     best_hotels_de_da = defaultdict(lambda: defaultdict(int))
@@ -49,7 +49,7 @@ def run_solution():
         total += 1
         if total % 100000 == 0:
             print('Read {} lines...'.format(total))
-        if line == '' or total==600000:
+        if line == '' or total==1000000:
             break
         arr = line.split(",")
         book_year = int(arr[0][:4])
@@ -126,7 +126,7 @@ def run_solution():
     if validate == 1:
         print('Validation...')
         #f = open("../data/train.csv", "r")
-        f = open("train_match_2016-05-17-15-47.csv","r")
+        f = open("train_nomatch_2016-05-17-15-47.csv","r")
     else:
         print('Generate submission...')
         f = open("../data/test.csv", "r")
@@ -213,7 +213,8 @@ def run_solution():
                 if validate == 1:
                    if topitems[i][0]==hotel_cluster:
                       hits[len(filled)] +=1
-        
+
+		
         s3 = (book_month, srch_destination_id)
         if s3 in best_hotel_mo_id:
             d = best_hotel_mo_id[s3]
@@ -229,10 +230,10 @@ def run_solution():
                    if topitems[i][0]==hotel_cluster:
                       hits[len(filled)] +=1			  
 
-        #best hotels by day and search destination                                                                                                                                                                                            
-        s11 = (srch_destination_id, days)
-        if s11 in best_hotels_de_da:
-            d = best_hotels_de_da[s11]
+      
+        s4 = (is_package, srch_destination_id)
+        if s4 in best_hotel_pk_id:
+            d = best_hotel_pk_id[s4]
             topitems = nlargest(5, d.items(), key=itemgetter(1))
             for i in range(len(topitems)):
                 if len(filled) == 5:
@@ -243,11 +244,12 @@ def run_solution():
                 filled.append(topitems[i][0])
                 if validate == 1:
                    if topitems[i][0]==hotel_cluster:
-                      hits[len(filled)] +=1        
-              
-        s4 = (is_package, srch_destination_id)
-        if s4 in best_hotel_pk_id:
-            d = best_hotel_pk_id[s4]
+                      hits[len(filled)] +=1
+		
+        #best hotels by day and search destination         
+        s11 = (srch_destination_id, days)
+        if s11 in best_hotels_de_da:
+            d = best_hotels_de_da[s11]
             topitems = nlargest(5, d.items(), key=itemgetter(1))
             for i in range(len(topitems)):
                 if len(filled) == 5:
