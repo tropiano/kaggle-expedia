@@ -30,7 +30,7 @@ def run_solution():
         if total % 10000000 == 0:
             print('Read {} lines...'.format(total))
 
-        if line == '':
+        if line == '' or total == 1000000:
             break
 
         arr = line.split(",")
@@ -110,9 +110,9 @@ def run_solution():
         srch_destination_id = arr[17]
         hotel_country = arr[20]
         hotel_market = arr[21]
-        ci = arr[11]
-        co = arr[12]
-        book_month = int(arr[0][5:7])
+        ci = arr[12]
+        co = arr[13]
+        book_month = int(arr[1][5:7])
         is_package = int(arr[10])
 
 
@@ -154,11 +154,8 @@ def run_solution():
                     continue
                 out.write(' ' + topitems[i][0])
                 filled.append(topitems[i][0])
-                if validate == 1:
-                   if topitems[i][0]==hotel_cluster:
-                      hits[len(filled)] +=1
-
-        #best hotels by day and search destination                                                                                                                                                                                         \
+                
+        #best hotels by day and search destination
         s11 = (srch_destination_id, days)
         if s11 in best_hotels_de_da:
             d = best_hotels_de_da[s11]
@@ -170,9 +167,6 @@ def run_solution():
                     continue
                 out.write(' ' + topitems[i][0])
                 filled.append(topitems[i][0])
-                if validate == 1:
-                   if topitems[i][0]==hotel_cluster:
-                       hits[len(filled)] +=1
                        
         s4 = (is_package, srch_destination_id)
         if s4 in best_hotel_pk_id:
@@ -185,10 +179,7 @@ def run_solution():
                     continue
                 out.write(' ' + topitems[i][0])
                 filled.append(topitems[i][0])
-                if validate == 1:
-                   if topitems[i][0]==hotel_cluster:
-                      hits[len(filled)] +=1
-
+                
         if srch_destination_id in best_hotels_search_dest1:
             d = best_hotels_search_dest1[srch_destination_id]
             topitems = nlargest(5, d.items(), key=itemgetter(1))
