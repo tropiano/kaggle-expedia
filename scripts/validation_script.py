@@ -1,4 +1,4 @@
-# coding: utf-8
+#coding: utf-8
 #################################
 #      Simple Validation        #
 #################################
@@ -31,10 +31,13 @@ def run_solution():
 
     best_hotels_search_dest = defaultdict(lambda: defaultdict(int))
     best_hotels_user_dest = defaultdict(lambda: defaultdict(int))
+    best_hotels_user_country = defaultdict(lambda: defaultdict(int))
+    best_hotels_user_distance = defaultdict(lambda: defaultdict(int))
+    best_hotels_user_month = defaultdict(lambda: defaultdict(int))
+    best_hotels_user_market = defaultdict(lambda: defaultdict(int))
     best_hotels_search_dest1 = defaultdict(lambda: defaultdict(int))
     best_hotel_country = defaultdict(lambda: defaultdict(int))
     best_hotel_month = defaultdict(lambda: defaultdict(int))
-    
     best_hotel_mo_id = defaultdict(lambda: defaultdict(int))
     best_hotel_pk_id = defaultdict(lambda: defaultdict(int))
     hits = defaultdict(int)
@@ -106,9 +109,25 @@ def run_solution():
         if hotel_country != '':
             best_hotel_country[hotel_country][hotel_cluster] += append_2
 	
-		#add the user id to try (srch_id + country)
-        if user_id != '' and hotel_country != '':
+		#add the user id to try (srch_id)
+        if user_id != '' and srch_destination_id != '':
             best_hotels_user_dest[(user_id, srch_destination_id)][hotel_cluster] += append_1
+			
+		#add the user id to try (country)
+        if user_id != '' and hotel_country != '':
+            best_hotels_user_country[(user_id, hotel_country)][hotel_cluster] += append_1
+
+		#add the user id to try (distance)
+        if user_id != '' and orig_destination_distance != '':
+            best_hotels_user_distance[(user_id, orig_destination_distance)][hotel_cluster] += append_1			
+		
+		#add the user id to try (month)
+        if user_id != '' and book_month != '':
+            best_hotels_user_month[(user_id, book_month)][hotel_cluster] += append_1
+		
+		#add the user id to try (market)
+        if user_id != '' and hotel_market != '':
+            best_hotels_user_market[(user_id, hotel_market)][hotel_cluster] += append_1
 			
 		#create the best hotel by month dictionary	
         if book_month != '':
@@ -218,6 +237,70 @@ def run_solution():
                    if topitems[i][0]==hotel_cluster:
                       hits[len(filled)] +=1
 		
+		s24 = (user_id,hotel_market)
+        if s24 in best_hotels_user_market:
+            d = best_hotels_user_market[s24]
+            topitems = nlargest(5, d.items(), key=itemgetter(1))
+            for i in range(len(topitems)):
+                if len(filled) == 5:
+                    break
+                if topitems[i][0] in filled:
+                    continue
+                out.write(' ' + topitems[i][0])
+                filled.append(topitems[i][0])
+                if validate == 1:
+                   if topitems[i][0]==hotel_cluster:
+                      hits[len(filled)] +=1
+					  
+		'''
+		s23 = (user_id,book_month)
+        if s23 in best_hotels_user_month:
+            d = best_hotels_user_month[s23]
+            topitems = nlargest(5, d.items(), key=itemgetter(1))
+            for i in range(len(topitems)):
+                if len(filled) == 5:
+                    break
+                if topitems[i][0] in filled:
+                    continue
+                out.write(' ' + topitems[i][0])
+                filled.append(topitems[i][0])
+                if validate == 1:
+                   if topitems[i][0]==hotel_cluster:
+                      hits[len(filled)] +=1
+		
+		
+		s22 = (user_id,orig_destination_distance)
+        if s22 in best_hotels_user_distance:
+            d = best_hotels_user_distance[s22]
+            topitems = nlargest(5, d.items(), key=itemgetter(1))
+            for i in range(len(topitems)):
+                if len(filled) == 5:
+                    break
+                if topitems[i][0] in filled:
+                    continue
+                out.write(' ' + topitems[i][0])
+                filled.append(topitems[i][0])
+                if validate == 1:
+                   if topitems[i][0]==hotel_cluster:
+                      hits[len(filled)] +=1
+		
+		
+		
+		s21 = (user_id,hotel_country)
+        if s21 in best_hotels_user_country:
+            d = best_hotels_user_country[s21]
+            topitems = nlargest(5, d.items(), key=itemgetter(1))
+            for i in range(len(topitems)):
+                if len(filled) == 5:
+                    break
+                if topitems[i][0] in filled:
+                    continue
+                out.write(' ' + topitems[i][0])
+                filled.append(topitems[i][0])
+                if validate == 1:
+                   if topitems[i][0]==hotel_cluster:
+                      hits[len(filled)] +=1
+		'''
 		
         s3 = (book_month, srch_destination_id)
         if s3 in best_hotel_mo_id:
