@@ -30,7 +30,7 @@ def run_solution():
     best_hotels_de_da = defaultdict(lambda: defaultdict(int))
 
     best_hotels_search_dest = defaultdict(lambda: defaultdict(int))
-    
+    best_hotels_user_dest = defaultdict(lambda: defaultdict(int))
     best_hotels_search_dest1 = defaultdict(lambda: defaultdict(int))
     best_hotel_country = defaultdict(lambda: defaultdict(int))
     best_hotel_month = defaultdict(lambda: defaultdict(int))
@@ -68,7 +68,7 @@ def run_solution():
         ci = arr[11]
         co = arr[12]
         
-        if validate == 1 and user_id % N0 == N1:
+        if validate == 1 and total % N0 == N1:
             continue
 
         #append_0 = (book_year - 2012)*12 + book_month
@@ -84,29 +84,32 @@ def run_solution():
 		
 		
         #zeturbo parameters
-        append_0 = 1
-        append_1 = 3 + 17*is_booking
-        append_2 = 1 + 5*is_booking
-	
-	'''
-        if user_location_city != '' and orig_destination_distance != '':
-            best_hotels_od_ulc[(user_location_city, orig_destination_distance)][hotel_cluster] += append_0
-        '''
+        #append_0 = 1
+        #append_1 = 3 + 17*is_booking
+        #append_2 = 1 + 5*is_booking
+		
+
+        #if user_location_city != '' and orig_destination_distance != '':
+            #best_hotels_od_ulc[(user_location_city, orig_destination_distance)][hotel_cluster] += append_0
 
         if srch_destination_id != '' and ci != '' and co != '':
             days = (datetime.strptime(co, '%Y-%M-%d') - datetime.strptime(ci, '%Y-%M-%d')).days
             best_hotels_de_da[(srch_destination_id,days)][hotel_cluster] += append_1
 
+		
         if srch_destination_id != '' and hotel_country != '' and hotel_market != '':
-            best_hotels_search_dest[(srch_destination_id, hotel_country, hotel_market,is_package)][hotel_cluster] += append_1
-
+            best_hotels_search_dest[(srch_destination_id, hotel_country, hotel_market)][hotel_cluster] += append_1
 			
-        if srch_destination_id != '' and orig_destination_distance != '':
+        if srch_destination_id != '':
             best_hotels_search_dest1[srch_destination_id][hotel_cluster] += append_0
 
         if hotel_country != '':
             best_hotel_country[hotel_country][hotel_cluster] += append_2
-
+	
+		#add the user id to try (srch_id + country)
+        if user_id != '' and hotel_country != '':
+            best_hotels_user_dest[(user_id, srch_destination_id)][hotel_cluster] += append_1
+			
 		#create the best hotel by month dictionary	
         if book_month != '':
             best_hotel_month[book_month][hotel_cluster] += append_2
@@ -197,11 +200,12 @@ def run_solution():
                 if validate == 1:
                    if topitems[i][0]==hotel_cluster:
                       hits[len(filled)] +=1
-
-              
-        s2 = (srch_destination_id, hotel_country, hotel_market,is_package)
-        if s2 in best_hotels_search_dest:
-            d = best_hotels_search_dest[s2]
+		
+        #added user_id     
+        #s2 = (srch_destination_id, hotel_country, hotel_market)
+        s2 = (user_id,srch_destination_id)
+        if s2 in best_hotels_user_dest:
+            d = best_hotels_user_dest[s2]
             topitems = nlargest(5, d.items(), key=itemgetter(1))
             for i in range(len(topitems)):
                 if len(filled) == 5:
@@ -213,7 +217,7 @@ def run_solution():
                 if validate == 1:
                    if topitems[i][0]==hotel_cluster:
                       hits[len(filled)] +=1
-
+		
 		
         s3 = (book_month, srch_destination_id)
         if s3 in best_hotel_mo_id:
@@ -246,7 +250,7 @@ def run_solution():
                    if topitems[i][0]==hotel_cluster:
                       hits[len(filled)] +=1
 		
-        #best hotels by day and search destination         
+        #best hotels by day and search destination        
         s11 = (srch_destination_id, days)
         if s11 in best_hotels_de_da:
             d = best_hotels_de_da[s11]
