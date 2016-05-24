@@ -5,7 +5,7 @@ import datetime
 from heapq import nlargest
 from operator import itemgetter
 from collections import defaultdict
-
+import math
 
 def run_solution():
     print('Preparing arrays...')
@@ -52,9 +52,12 @@ def run_solution():
         is_package = int(arr[9])
 
 		#optimised weights
-        append_0 = (book_year - 2012)*12 + book_month
-        append_1 = ((book_year - 2012)*12 + book_month) * (1 + 10*is_booking)
-        append_2 = ((book_year - 2012)*12 + book_month) * (1 + 5*is_booking)
+        append_0 = math.log((book_year - 2012)*12 + book_month)
+        #try a weight based on destination distance 
+        #append_0 = float(orig_destination_distance)/24901 if orig_destination_distance != '' else 0
+        #print append_0
+        append_1 = math.log((book_year - 2012)*12 + book_month) * (1 + 10*is_booking)
+        append_2 = math.log((book_year - 2012)*12 + book_month) * (1 + 5*is_booking)
 		
 		#zeturbo weights
         #append_1 = 3 + 17*is_booking
@@ -80,7 +83,7 @@ def run_solution():
 			
 		#add the user id to try (srch_id + country)
         if user_id != '' and hotel_country != '':
-            best_hotels_user_dest[(user_id, srch_destination_id)][hotel_cluster] += append_1
+            best_hotels_user_dest[(user_id, srch_destination_id)][hotel_cluster] += append_2
 		
 				
         #create the best hotel by month dictionary                                                                                                                                                                                   
@@ -241,6 +244,7 @@ def run_solution():
 
         out.write("\n")
     out.close()
+	f.close()
     print('Completed!')
 
 run_solution()

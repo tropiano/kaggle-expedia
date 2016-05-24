@@ -13,6 +13,7 @@ from datetime import datetime
 from heapq import nlargest
 from operator import itemgetter
 from collections import defaultdict
+import math 
 
 # validation ###############
 validate = 1  # 1 - validation, 0 - submission
@@ -78,12 +79,12 @@ def run_solution():
         #append_1 = ((book_year - 2012)*12 + book_month) * (1 + 10*is_booking)
         #append_2 = ((book_year - 2012)*12 + book_month) * (1 + 5*is_booking)
         #print orig_destination_distance
-        append_0 = (book_year - 2012)*12 + book_month
+        append_0 = math.log((book_year - 2012)*12 + book_month)
         #try a weight based on destination distance 
         #append_0 = float(orig_destination_distance)/24901 if orig_destination_distance != '' else 0
         #print append_0
-        append_1 = ((book_year - 2012)*12 + book_month) * (1 + 10*is_booking)
-        append_2 = ((book_year - 2012)*12 + book_month) * (1 + 5*is_booking)
+        append_1 = math.log((book_year - 2012)*12 + book_month) * (1 + 10*is_booking)
+        append_2 = math.log((book_year - 2012)*12 + book_month) * (1 + 5*is_booking)
 		
 		
         #zeturbo parameters
@@ -127,7 +128,7 @@ def run_solution():
 		
 		#add the user id to try (market)
         if user_id != '' and hotel_market != '':
-            best_hotels_user_market[(user_id, hotel_market)][hotel_cluster] += append_1
+            best_hotels_user_market[(user_id, hotel_market)][hotel_cluster] += append_0
 			
 		#create the best hotel by month dictionary	
         if book_month != '':
@@ -236,7 +237,7 @@ def run_solution():
                 if validate == 1:
                    if topitems[i][0]==hotel_cluster:
                       hits[len(filled)] +=1
-		
+		'''
 		s24 = (user_id,hotel_market)
         if s24 in best_hotels_user_market:
             d = best_hotels_user_market[s24]
@@ -252,7 +253,7 @@ def run_solution():
                    if topitems[i][0]==hotel_cluster:
                       hits[len(filled)] +=1
 					  
-		'''
+		
 		s23 = (user_id,book_month)
         if s23 in best_hotels_user_month:
             d = best_hotels_user_month[s23]
