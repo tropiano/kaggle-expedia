@@ -56,6 +56,23 @@ def run_solution():
         if line == '' or total==1000000:
             break
         arr = line.split(",")
+		
+        '''
+		#month hack to get better LB score
+        if arr[11] != '':
+            book_year = int(arr[11][:4])
+            book_month = int(arr[11][5:7])
+        else:	
+		    book_year = int(arr[0][:4])
+		    book_month = int(arr[0][5:7])
+        
+		if book_month<1 or book_month>12 or book_year<2012 or book_year>2015:
+            #print(book_month)
+            #print(book_year)
+            #print(line)
+            continue
+        '''
+        
         book_year = int(arr[0][:4])
         book_month = int(arr[0][5:7])
         user_location_city = arr[5]
@@ -83,7 +100,7 @@ def run_solution():
         #try a weight based on destination distance 
         #append_0 = float(orig_destination_distance)/24901 if orig_destination_distance != '' else 0
         #print append_0
-        append_1 = math.log((book_year - 2012)*12 + book_month) * (1 + 10*is_booking)
+        append_1 = math.log((book_year - 2012)*12 + book_month) * (1 + 15*is_booking)
         append_2 = math.log((book_year - 2012)*12 + book_month) * (1 + 5*is_booking)
 		
 		
@@ -173,8 +190,16 @@ def run_solution():
 
         arr = line.split(",")
         if validate == 1:
+            '''
+			if arr[11] != '':
+                book_year = int(arr[11][:4])
+                book_month = int(arr[11][5:7])
+            else:	
+                book_year = int(arr[0][:4])
+                book_month = int(arr[0][5:7])
+			'''
             book_year = int(arr[0][:4])
-            book_month = int(arr[0][5:7])
+            book_month = int(arr[0][5:7])	
             user_location_city = arr[5]
             orig_destination_distance = arr[6]
             user_id = int(arr[7])
